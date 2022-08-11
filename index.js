@@ -12,6 +12,7 @@ app.get('/', async(req,res) => {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "X-Requested-With");
     res.json(tempJson);
+    console.log(`-------------`)
 }).listen(3000, () => console.log("Server running on port 3000"));
 
 /* 

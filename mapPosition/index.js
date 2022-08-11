@@ -61,13 +61,12 @@ const makeNaviUrl = () => {
     url += rt_name;
     url += `&rtTypes=`;
     for (let index = 1; index < SEQUENCE; index++) { url += `PLACE,` }
-
-    resetGlobal();
+    
     URL = url;
     return new Promise((resolve, rejects) => {
         resolve(URL);
     });
-
+    
 }
 
 
@@ -78,12 +77,14 @@ const delayGetLocal = async (text, time) => {
 }
 
 exports.loadSetter = async (arr) => {
-
+    
+    resetGlobal();
+    console.log(SEQUENCE, LOCAL, URL)
     for (let index = 0; index < arr.length; index++) {
         await delayGetLocal(arr[index], 200 * index);
     }
 
-    return new Promise((resolve) =>
+    return await new Promise((resolve) =>
         setTimeout(async () => {
             let temp = await makeNaviUrl();
             resolve(temp);
