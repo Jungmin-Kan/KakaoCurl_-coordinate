@@ -7,6 +7,11 @@ const resetGlobal = () => {
     URL = ``;
 }
 
+/**
+ * 
+ * @param {String} value 
+ * @returns 
+ */
 const makeLocalUrl = (value) => {
     let STR_ADDRESS = encodeURIComponent(value);
     return `curl 'https://search.map.kakao.com/mapsearch/map.daum?callback=jQuery18106437037214681931_1659729192607&q=${STR_ADDRESS}&msFlag=A&sort=0' \
@@ -51,7 +56,9 @@ const parseAtFilter = (stdout) => {
     return obj;
 };
 const makeNaviUrl = () => {
-    let url = `https://map.kakao.com/?map_type=TYPE_MAP&target=car`, rt_kmap = `&rt=`, rt_name = ``;
+    // &carMode=SHORTEST_REALTIME : 최적거리
+    // &carMode=SHORTEST_DIST  : 최단거리
+    let url = `https://map.kakao.com/?map_type=TYPE_MAP&target=car&carMode=SHORTEST_DIST`, rt_kmap = `&rt=`, rt_name = ``;
 
     Object.entries(LOCAL).forEach(([key, value]) => {
         rt_kmap += `${value._x},${value._y},`;
