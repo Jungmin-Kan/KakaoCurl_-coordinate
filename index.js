@@ -1,18 +1,45 @@
 const app = require("express")();
 const { loadSetter } = require("./mapPosition");
+const { makeLocalUrl, findLocation, makeNaviUrl } = require("./mapPosition2");
 
-app.get('/', async(req,res) => {
+const getDestination = (_value) => {
     let destination = [];
-    Object.entries(req.query).forEach(([key, value]) => {
-       console.log(key, value)
-       destination.push(decodeURIComponent(value))
+    Object.entries(_value).forEach(([key, value]) => {
+        //    console.log(key, value);
+        destination.push(decodeURIComponent(value));
     });
-    let temp = await loadSetter(destination);
-    let tempJson = {temp};
+    return destination;
+}
+
+// app.get('/', async(req,res) => {
+//     (async(req)=>{
+//         let temp = await loadSetter(getDestination(req.query));
+//         let tempJson = {temp};
+//         res.header("Access-Control-Allow-Origin", "*");
+//         res.header("Access-Control-Allow-Headers", "X-Requested-With");
+//         res.json(tempJson);
+//         console.log(`-------------`)
+//     })(req)
+// }).listen(3000, () => console.log("Server running on port 3000"));
+
+app.get('/', async (req, res) => {
+    let _res = getDestination(req.query);
+    let _curlSource = [];
+    for (let index = 0; index < _res.length; index++) {
+        _curlSource.push(makeLocalUrl(_res[index]));
+    }
+
+    let _makeUrl = [];
+    for (let index = 0; index < _curlSource.length; index++) {
+        _makeUrl.push(findLocation(_curlSource[index]));
+    }
+    let __res = makeNaviUrl(_makeUrl);
+    console.log(__res);
+
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "X-Requested-With");
-    res.json(tempJson);
-    console.log(`-------------`)
+    res.json(__res);
+
 }).listen(3000, () => console.log("Server running on port 3000"));
 
 /* 
@@ -36,7 +63,4 @@ nmap://route/car
 
 
 'nmap://route/car?slat=37.3595953&slng=127.1053971&sname=그린팩토리&secoords=37.359761,127.10527&dlng=127.1267772&dlat=37.4200267&dname=성남시청&decoords=37.4189564,127.1256827&v1lng=126.9522394&v1lat=37.464007&v1name= 서울대학교&v1ecoords=37.466358,126.948357&v2lng=126.6578437&v2lat=37.6164711&v2name= 현대아울렛&v2ecoords=37.6164711,126.6578437&appname=com.example.myapp'
-
-
-
 */

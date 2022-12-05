@@ -1,17 +1,7 @@
-const exec = require('child_process').exec;
-let SEQUENCE = 1, LOCAL = {}, URL = ``;
+// const exec = require('child_process').exec;
+const execSync = require('child_process').execSync;
 
-const resetGlobal = () => {
-    SEQUENCE = 1;
-    LOCAL = {};
-    URL = ``;
-}
 
-/**
- * 
- * @param {String} value 
- * @returns 
- */
 const makeLocalUrl = (value) => {
     let STR_ADDRESS = encodeURIComponent(value);
     return `curl 'https://search.map.kakao.com/mapsearch/map.daum?callback=jQuery18106437037214681931_1659729192607&q=${STR_ADDRESS}&msFlag=A&sort=0' \
@@ -29,14 +19,14 @@ const makeLocalUrl = (value) => {
     -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36' \
     --compressed`;
 }
-const findLocation = async (value) => {
-    exec(value, (error, stdout, stderr) => {
-        let getObj = parseAtFilter(stdout);
-        LOCAL[SEQUENCE] = getObj;
-        SEQUENCE += 1;
-        if (error !== null) { console.log('exec error: ' + error); }
-    });
+
+
+const findLocation =  (value) => {
+    const stdout = execSync(value).toString();
+    let _res = parseAtFilter(stdout);
+    return _res;
 }
+
 const parseAtFilter = (stdout) => {
     let filter = "/**/jQuery18106437037214681931_1659729192607";
     let temp = stdout.replace(filter, '').replace('({', '{').replace('});', '}');
@@ -55,43 +45,28 @@ const parseAtFilter = (stdout) => {
     }
     return obj;
 };
-const makeNaviUrl = () => {
+
+
+const makeNaviUrl = (makeNaviUrl) => {
+    console.log(makeNaviUrl)
     // &carMode=SHORTEST_REALTIME : 최적거리
     // &carMode=SHORTEST_DIST  : 최단거리
-    let url = `https://map.kakao.com/?map_type=TYPE_MAP&target=car&carMode=SHORTEST_DIST`, 
-    rt_kmap = `&rt=`, 
-    rt_name = ``;
+    let url = `https://map.kakao.com/?map_type=TYPE_MAP&target=car&carMode=SHORTEST_DIST`, rt_kmap = `&rt=`, rt_name = ``;
 
-    Object.entries(LOCAL).forEach(([key, value]) => {
-        rt_kmap += `${value._x},${value._y},`;
-        rt_name += `&rt${key}=${value._name}`;
-    });
+    for (let index = 0; index < makeNaviUrl.length; index++) {
+        rt_kmap += `${makeNaviUrl[index]._x},${makeNaviUrl[index]._y},`;
+        rt_name += `&rt${index+1}=${makeNaviUrl[index]._name}`;        
+    }
     url += rt_kmap;
     url += rt_name;
     url += `&rtTypes=`;
-    for (let index = 1; index < SEQUENCE; index++) { url += `PLACE,` }
+    for (let index = 0; index < makeNaviUrl.length; index++) { url += `PLACE,` }
     
-    URL = url;
-    return new Promise((resolve, rejects) => { resolve(URL) });
+    return url;
 }
 
-const delayGetLocal = async (text, time) => {
-    setTimeout(() => {
-        findLocation(makeLocalUrl(text))
-    }, time)
-}
 
-exports.loadSetter = async (arr) => {
-    resetGlobal();
-    console.log(SEQUENCE, LOCAL, URL)
-    for (let index = 0; index < arr.length; index++) {
-        await delayGetLocal(arr[index], 150 * index);
-    }
 
-    return await new Promise((resolve) =>
-        setTimeout(async () => {
-            let temp = await makeNaviUrl();
-            resolve(temp);
-        }, 300 * arr.length)
-    );
-}
+exports.makeLocalUrl = makeLocalUrl;
+exports.findLocation = findLocation;
+exports.makeNaviUrl = makeNaviUrl;
